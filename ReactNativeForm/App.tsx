@@ -1,58 +1,79 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState } from 'react';
+import { TextInput } from './components/TextInput'
+import { Text, View, StyleSheet, Button, Alert, TouchableOpacity } from 'react-native';
+import { useForm, FormProvider, SubmitHandler, SubmitErrorHandler } from 'react-hook-form';
 
-import React, {useState} from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput
-} from 'react-native';
+type FormValues = {
+  email: string;
+  password: string;
+};
 
-function App(): JSX.Element {
+export default function App() {
+  // useForm hook and set default behavior/values
+  const { ...methods } = useForm({ mode: 'onChange' });
 
-  const [name, setName] = useState('')
+  const onSubmit: SubmitHandler<FormValues> = (data) => console.log({ data });
+
+  const [formError, setError] = useState<Boolean>(false)
+
+  const onError: SubmitErrorHandler<FormValues> = (errors, e) => {
+    return console.log({ errors })
+  }
 
   return (
-    <View style={styles.body}>
-      <Text style = {styles.text}>
-        Please write your name
-      </Text>
-      <TextInput 
-      style={styles.input} 
-      placeholder='e.g. Ayaz' 
-      onChangeText={(value)=>setName(value)}
-      />
-      <Text style = {styles.text}>
-        Your name is: {name}
-      </Text>
+    <View style={styles.container}>
+      {formError ? <View><Text style={{ color: 'red' }}>There was a problem with loading the form. Please try again later.</Text></View> :
+        <>
+          <FormProvider {...methods}>
+            <TextInput
+              name="email"
+              label="Email"
+              placeholder="jon.doe@email.com"
+              keyboardType="email-address"
+              rules={{
+                required: 'Email is required!',
+                pattern: {
+                  value: /\b[\w\\.+-]+@[\w\\.-]+\.\w{2,4}\b/,
+                  message: 'Must be formatted: john.doe@email.com',
+                },
+              }}
+              setFormError={setError}
+            />
+            <TextInput
+              name="password"
+              label="Password"
+              secureTextEntry
+              placeholder="**********"
+              rules={{ required: 'Password is required!' }}
+              setFormError={setError}
+            />
+          </FormProvider>
+        </>
+      }
+      <View style={styles.button}>
+        <Button
+          title="Login"
+          color="#ec5990"
+          onPress={methods.handleSubmit(onSubmit, onError)}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: {
+  button: {
+    marginTop: 40,
+    color: 'white',
+    height: 40,
+    backgroundColor: '#ec5990',
+    borderRadius: 4,
+  },
+  container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center'
+    justifyContent: 'center',
+    paddingTop: 20,
+    padding: 8,
+    backgroundColor: '#0e101c',
   },
-  text: {
-    color: '#000000',
-    fontSize: 20,
-    margin: 10 
-  },
-  input: {
-    width: 200,
-    borderWidth: 1,
-    borderColor: '#555',
-    borderRadius: 5,
-    textAlign: 'center',
-    fontSize: 15
-  }
 });
-
-export default App;
